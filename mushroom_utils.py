@@ -73,6 +73,18 @@ def full_scoring(X_train, y_train, X_test, y_test, model, name):
     test_rec_scores = get_scores(X_test, y_test, model, thresh = safest_thresh, name=f'{name} Test Recommendation')
     return train_pred_scores, test_pred_scores, train_rec_scores, test_rec_scores
 
+def thresh_confusion_matrix(X, y, thresh, model):
+    """Description: plots a confusion matrix with a given model and threshold
+    INPUTS: X = training or test data used to predict probabilities
+            y = training or test data used to evaluate predictions
+            thresh = confidence threshold before labelling positive
+            model = model used for predictions
+    OUTPUTS: returns confusion matrix as an array
+    """
+    probs = model.predict_proba(X)[:,1]
+    pred = (probs >= thresh).astype(bool)
+    conf_arry = confusion_matrix(y, pred, labels=None, sample_weight=None, normalize=None)
+    return conf_arry
 
 def prep_for_sub(model, thresh, test_df, name='sml'):
     """Description: creates csv file with predictions
