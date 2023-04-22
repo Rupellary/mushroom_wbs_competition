@@ -66,7 +66,7 @@ def full_scoring(X_train, y_train, X_test, y_test, model, name):
              train_rec_scores = score data frame for safe predictions on training data
              test_pred_scores = score data frame for safe predictions on test data
     """
-    thresh_df, safest_thresh = get_safest_thesh(X_train, y_train, model)
+    thresh_df, safest_thresh = get_safest_thresh(X_train, y_train, model)
     train_pred_scores = get_scores(X_train, y_train, model, thresh = 0.5, name=f'{name} Train Prediction')
     test_pred_scores = get_scores(X_test, y_test, model, thresh = 0.5, name=f'{name} Test Prediction')
     train_rec_scores = get_scores(X_train, y_train, model, thresh = safest_thresh, name=f'{name} Train Recommendation')
@@ -74,15 +74,18 @@ def full_scoring(X_train, y_train, X_test, y_test, model, name):
     return train_pred_scores, test_pred_scores, train_rec_scores, test_rec_scores
 
 
-def prep_for_sub(model, test_df):
+def prep_for_sub(model, thresh, test_df, name='sml'):
     """Description: creates csv file with predictions
     INPUTS: model = model using to predict
+            thresh = threshold chosen for cautious prediction
             test_df = data frame with test data
+            name = name of model to differentiate submissions
     OUTPUTS: returns nothing
              creates file named mushroom_challenge_answers.csv in the folder in which the code is running
     """
-    pred = model.predict(test_df)
+    probs = model.predict_proba(test_df)[:,1]
+    pred = (probs >= thresh).astype(bool)
     df = test_df
     df['poisonous'] = pred
     answers_df = df.loc[:,['Id','poisonous']].set_index('Id')
-    answers_df.to_csv('mushroom_challenge_answers.csv')
+    answers_df.to_csv(f'{name}_mushroom_challenge_answers.csv')
