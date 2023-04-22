@@ -1,5 +1,5 @@
 import pandas as pd
-from sklearn.metrics import confusion_matrix, auc, roc_curve, accuracy_score, precision_score, recall_score, f1_score, ConfusionMatrixDisplay
+from sklearn.metrics import confusion_matrix, roc_auc_score, roc_curve, accuracy_score, precision_score, recall_score, f1_score, ConfusionMatrixDisplay
 
 
 
@@ -24,7 +24,7 @@ def get_scores(X, y, model, thresh = 0.5, name='Model'):
                        y_pred = pred)
     f1 = f1_score(y_true = y,
                   y_pred = pred)
-    auc = auc(rec, pre)
+    auc = roc_auc_score(y, probs)
     df = pd.DataFrame({'Accuracy': acc,
                       'Precision': pre,
                       'Recall': rec,
@@ -35,7 +35,7 @@ def get_scores(X, y, model, thresh = 0.5, name='Model'):
     return df
 
 
-def get_safest_thesh(X, y, model):
+def get_safest_thresh(X, y, model):
     """Description: generates data frame with false and true positive rates with varying thresholds and a score of the highest threshold that leaves no false negatives
     INPUTS: X = training or test data used to predict probabilities
             y = training or test data used to evaluate predictions
