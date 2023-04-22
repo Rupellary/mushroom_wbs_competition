@@ -1,16 +1,18 @@
+# Imports
 import pandas as pd
-from sklearn.metrics import confusion_matrix, roc_auc_score, roc_curve, accuracy_score, precision_score, recall_score, f1_score, ConfusionMatrixDisplay
+from sklearn.metrics import confusion_matrix, roc_auc_score, roc_curve, accuracy_score, precision_score, recall_score, f1_score
 
 
+# Custom Functions
 
 def get_scores(X, y, model, thresh = 0.5, name='Model'):
-    """Description: generates dataframe of different performance metrics for a model
-    INPUTS: X = training or test data to predict with
-            y = corresponding training or test data to compare with predictions and evaluate
+    """Description: generates dataframe of different performance metrics for a model using an input threshold
+    INPUTS: X = training or test data frame of predictor features
+            y = corresponding training or test data frame used to compare with predictions and evaluate
             model = model to predict with
-            thresh = confidence required to label positive, probability between 0.0 and 1.0
+            thresh = probablistic confidence required to label positive, must be a probability between 0.0 and 1.0
             name = name of model to label the data frame with
-    OUTPUT: data frame with performance metrics"""
+    OUTPUT: returns data frame with performance metrics"""
     probs = model.predict_proba(X)[:,1]
     pred = (probs >= thresh).astype(bool)
     acc = accuracy_score(y_true = y,
@@ -36,12 +38,12 @@ def get_scores(X, y, model, thresh = 0.5, name='Model'):
 
 
 def get_safest_thresh(X, y, model):
-    """Description: generates data frame with false and true positive rates with varying thresholds and a score of the highest threshold that leaves no false negatives
-    INPUTS: X = training or test data used to predict probabilities
-            y = training or test data used to evaluate predictions
+    """Description: generates data frame with false and true positive rates for varying thresholds and a score of the highest threshold that leaves no false negatives
+    INPUTS: X = data frame of predictor features
+            y = data frame of target feature values
             model = model used for predictions
     OUTPUTS: thresh_df = data frame of true and false positive rates for various threshold values
-             safest_thresh = highest threshold that still leaves no false negatives
+             safest_thresh = highest threshold that still yields no false negatives
     """
     probs = model.predict_proba(X)[:,1]
     fpr, tpr, thresh = roc_curve(y, probs)
@@ -66,7 +68,7 @@ def full_scoring(X_train, y_train, X_test, y_test, model, name):
              train_rec_scores = score data frame for safe predictions on training data
              test_pred_scores = score data frame for safe predictions on test data
     """
-    thresh_df, safest_thresh = get_safest_thresh(X_train, y_train, model)
+    safest_thresh = get_safest_thresh(X_train, y_train, model)[1]
     train_pred_scores = get_scores(X_train, y_train, model, thresh = 0.5, name=f'{name} Train Prediction')
     test_pred_scores = get_scores(X_test, y_test, model, thresh = 0.5, name=f'{name} Test Prediction')
     train_rec_scores = get_scores(X_train, y_train, model, thresh = safest_thresh, name=f'{name} Train Recommendation')
@@ -74,7 +76,7 @@ def full_scoring(X_train, y_train, X_test, y_test, model, name):
     return train_pred_scores, test_pred_scores, train_rec_scores, test_rec_scores
 
 def thresh_confusion_matrix(X, y, thresh, model):
-    """Description: plots a confusion matrix with a given model and threshold
+    """Description: returns a confusion matrix using a given model and threshold
     INPUTS: X = training or test data used to predict probabilities
             y = training or test data used to evaluate predictions
             thresh = confidence threshold before labelling positive
@@ -93,7 +95,7 @@ def prep_for_sub(model, thresh, test_df, name='sml'):
             test_df = data frame with test data
             name = name of model to differentiate submissions
     OUTPUTS: returns nothing
-             creates file named mushroom_challenge_answers.csv in the folder in which the code is running
+             creates file named {input model name}_mushroom_challenge_answers.csv in the folder in which the code is running
     """
     probs = model.predict_proba(test_df)[:,1]
     pred = (probs >= thresh).astype(bool)
